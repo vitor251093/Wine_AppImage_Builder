@@ -2,7 +2,8 @@ const fs = require('fs')
 const yaml = require('yaml')
 const child_process = require('child_process')
 
-const version = "stable"
+const args = process.argv.slice(2)
+const version = args[0] || "stable"
 
 const baseFilePath = "wine_base.yml"
 const dataYaml = fs.readFileSync(baseFilePath, {encoding: 'utf-8'})
