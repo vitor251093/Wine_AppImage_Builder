@@ -46,14 +46,20 @@ newDataYaml = newDataYaml.replace("  - WRAPPER_FILE", wrapperContentsLines)
 newDataYaml = newDataYaml.split("{{version}}").join(version)
 
 const fullBuildFolderPath = path.join(__dirname, buildFolder)
-if (!fs.existsSync(fullBuildFolderPath)) {
-    fs.mkdirSync(fullBuildFolderPath)
+if (fs.existsSync(fullBuildFolderPath)) {
+    fs.rmSync(fullBuildFolderPath, {recursive:true})
 }
+fs.mkdirSync(fullBuildFolderPath)
 
 const filePath = `wine-${version}.yml`
 fs.writeFileSync(path.join(buildFolder, filePath), newDataYaml, 'utf-8');
 
 let output = child_process.spawnSync(path.join(__dirname, "pkg2appimage.AppImage"), 
     [path.join(".", filePath)], {cwd:fullBuildFolderPath, encoding:"utf-8"})
-console.log(output)    
-console.log(output.output.join("\n"))
+if (output.output === null) {
+    console.log(output)
+}
+else {
+    const log = output.output.join("\n")
+    fs.writeFileSync(path.join(buildFolder, "BUILD_LOGS"), log, 'utf-8');
+}

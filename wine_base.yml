@@ -1,8 +1,6 @@
 version: 1
 
 script:
-  # Remove any previous build cache data
-  - rm -rf AppDir || true
   - mkdir AppDir
   # Create wrapper file manually
   - cat > ./AppDir/wrapper << 'EOF'
