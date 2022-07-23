@@ -1,0 +1,135 @@
+version: 1
+
+script:
+  # Remove any previous build cache data
+  - rm -rf AppDir || true
+  - mkdir AppDir && cp wrapper AppDir
+  # Add winetricks
+  - wget -q "https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks" -P ./AppDir/bin && chmod +x ./AppDir/bin/winetricks
+  # Copy App icon to AppDir/usr/share/icons needed prior to appimage-builder ver 1.x.x
+  - mkdir -p AppDir/usr/share/icons ; cp wine.svg AppDir/usr/share/icons
+  # Add WINE official light blue theme
+  - wget -q "https://github.com/mmtrt/sommelier-core/raw/master/themes/light/light.msstyles" -P ./AppDir/winedata/resources/themes/light
+
+AppDir:
+  path: ./AppDir
+
+  app_info:
+    id: org.winehq.wine
+    name: wine
+    icon: wine
+    version: {{version: stable|devel|staging}}
+    exec: bin/bash
+    exec_args: wrapper $@
+
+  apt:
+    arch: [amd64, i386]
+    sources:
+      - sourceline: 'deb http://deb.debian.org/debian buster main contrib non-free'
+      - sourceline: 'deb https://dl.winehq.org/wine-builds/debian/ buster main'
+        key_url: 'https://dl.winehq.org/wine-builds/winehq.key'
+
+    include:
+      - {{if version = stable: winehq-stable}}
+      - {{if version = devel: winehq-devel,wine-devel}}
+      - {{if version = staging: winehq-staging,wine-staging}}
+      - bash
+      - cabextract
+      - dash
+      - perl
+      - coreutils
+      - mesa-utils
+      - unionfs-fuse
+
+  files:
+    exclude:
+      - sbin
+      - var
+      - etc/alternatives
+      - etc/apt
+      - etc/cron.daily
+      - etc/dpkg
+      - etc/mysql
+      - etc/sane.d
+      - etc/sensors.d
+      - etc/skel
+      - etc/snmp
+      - etc/udev
+      - etc/gss
+      - etc/init.d
+      - etc/logrotate.d
+      - lib/modprobe.d
+      - lib/systemd
+      - lib/udev
+      - usr/lib/mime
+      - usr/lib/sasl2
+      - usr/lib/tmpfiles.d
+      - usr/lib/x86_64-linux-gnu
+      - usr/sbin
+      - usr/share/apps
+      - usr/share/man
+      - usr/share/doc
+      - usr/share/adduser
+      - usr/share/apport
+      - usr/share/bash-completion
+      - usr/share/bug
+      - usr/share/debconf
+      - usr/share/doc
+      - usr/share/doc-base
+      - usr/share/dpkg
+      - usr/share/glib-2.0
+      - usr/share/gst-plugins-base
+      - usr/share/hal
+      - usr/share/info
+      - usr/share/initramfs-tools
+      - usr/share/kde4
+      - usr/share/libgphoto2
+      - usr/share/lintian
+      - usr/share/menu
+      - usr/share/metainfo
+      - usr/share/misc
+      - usr/share/mysql-common
+      - usr/share/pixmaps
+      - usr/share/pkgconfig
+      - usr/share/polkit-1
+      - usr/share/snmp
+      - usr/share/zoneinfo
+      - usr/share/zoneinfo-icu
+      - usr/share/zsh
+      - opt/wine-{{version}}/share/man
+      - opt/wine-{{version}}/share/applications
+      - opt/wine-{{version}}/lib/wine/*.a
+      - opt/wine-{{version}}/lib/wine/*.def
+      - opt/wine-{{version}}/lib/wine/i386-unix/*.a
+      - opt/wine-{{version}}/lib/wine/i386-windows/*.a
+      - opt/wine-{{version}}/lib64/wine/*.a
+      - opt/wine-{{version}}/lib64/wine/*.def
+      - opt/wine-{{version}}/lib64/wine/x86_64-unix/*.a
+      - opt/wine-{{version}}/lib64/wine/x86_64-windows/*.a
+
+  runtime:
+    path_mappings:
+    - /opt/wine-{{version}}:$APPDIR/opt/wine-{{version}}
+
+  test:
+    debian:
+      image: appimagecrafters/tests-env:debian-stable
+      command: "./AppRun --version"
+    centos:
+      image: appimagecrafters/tests-env:centos-7
+      command: "./AppRun --version"
+    arch:
+      image: appimagecrafters/tests-env:archlinux-latest
+      command: "./AppRun --version"
+    fedora:
+      image: appimagecrafters/tests-env:fedora-30
+      command: "./AppRun --version"
+    ubuntu:
+      image: appimagecrafters/tests-env:ubuntu-xenial
+      command: "./AppRun --version"
+
+AppImage:
+  update-information: None
+  sign-key: None
+  arch: x86_64
+
