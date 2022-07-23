@@ -3,11 +3,26 @@ version: 1
 script:
   # Remove any previous build cache data
   - rm -rf AppDir || true
-  - mkdir AppDir && cp wrapper AppDir
+  - mkdir AppDir
+  # Create wrapper file manually
+  - cat > ./AppDir/wrapper << 'EOF'
+  - WRAPPER_FILE
+  - EOF
   # Add winetricks
   - wget -q "https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks" -P ./AppDir/bin && chmod +x ./AppDir/bin/winetricks
+  # Add required desktop file
+  - mkdir -p ./Wine.AppDir/usr/share/applications/
+  - wget -N https://source.winehq.org/git/wine.git/blob_plain/HEAD:/loader/wine.desktop
+  - sed -i -e 's|Icon=wine.*|Icon=wine|g' wine.desktop
+  - sed -i -e 's|Name=Wine.*|Name=Wine|g' wine.desktop
+  - sed -i -e '/Name\[.*/d' wine.desktop
+  - sed -i -e 's|Exec=wine.*|Exec=wine|g' wine.desktop
+  - echo 'Categories=Utility;Settings;' >> wine.desktop
+  - cp ./wine.desktop ./Wine.AppDir/usr/share/applications/wine.desktop
   # Copy App icon to AppDir/usr/share/icons needed prior to appimage-builder ver 1.x.x
-  - mkdir -p AppDir/usr/share/icons ; cp wine.svg AppDir/usr/share/icons
+  - mkdir -p AppDir/usr/share/icons
+  - wget -N https://source.winehq.org/git/wine.git/blob_plain/HEAD:/dlls/wineandroid.drv/wine.svg
+  - cp wine.svg AppDir/usr/share/icons
   # Add WINE official light blue theme
   - wget -q "https://github.com/mmtrt/sommelier-core/raw/master/themes/light/light.msstyles" -P ./AppDir/winedata/resources/themes/light
 
@@ -104,9 +119,18 @@ AppDir:
       - opt/wine-*/lib64/wine/x86_64-unix/*.a
       - opt/wine-*/lib64/wine/x86_64-windows/*.a
 
+  after_bundle:
+    # this is executed after the packages and files are added
+    - |
+     # Disable FileOpenAssociations
+     sed -i 's|    LicenseInformation|    LicenseInformation,\\\n    FileOpenAssociations|g;$a \\n[FileOpenAssociations]\nHKCU,Software\\Wine\\FileOpenAssociations,"Enable",,"N"' AppDir/opt/wine-{{version}}/share/wine/wine.inf
+     # Disable winemenubuilder
+     sed -i 's|    FileOpenAssociations|    FileOpenAssociations,\\\n    DllOverrides|;$a \\n[DllOverrides]\nHKCU,Software\\Wine\\DllOverrides,"*winemenubuilder.exe",,""' AppDir/opt/wine-{{version}}/share/wine/wine.inf
+     sed -i '/\%11\%\\winemenubuilder.exe -a -r/d' AppDir/opt/wine-{{version}}/share/wine/wine.inf
+  
   runtime:
     path_mappings:
-    - /opt/wine-version:$APPDIR/opt/wine-version
+    - /opt/wine-{{version}}:$APPDIR/opt/wine-{{version}}
 
   test:
     debian:

@@ -1,10 +1,6 @@
 .AppDir/
-
+build/
 node_modules/
+out/
 
 pkg2appimage.AppImage
-
-wine-stable.yml
-wine-devel.yml
-wine-staging.yml
-

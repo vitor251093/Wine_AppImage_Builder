@@ -1,15 +1,28 @@
 const fs = require('fs')
 const yaml = require('yaml')
 const child_process = require('child_process')
+const path = require('path')
 
 const args = process.argv.slice(2)
 const version = args[0] || "stable"
 
+const buildFolder = "build"
 const baseFilePath = "wine_base.yml"
-const dataYaml = fs.readFileSync(baseFilePath, {encoding: 'utf-8'})
-const data = yaml.parse(dataYaml)
+const wrapperFileName = "wrapper"
 
+const requiredPkg2appimageFileName = "pkg2appimage.AppImage"
+const fullPkg2appimagePath = path.join(__dirname, requiredPkg2appimageFileName)
+if (!fs.existsSync(fullPkg2appimagePath)) {
+    throw new Error(`${requiredPkg2appimageFileName} is required to run this script`)
+}
+
+const dataYaml = fs.readFileSync(baseFilePath, {encoding: 'utf-8'})
+const data = yaml.parse(dataYaml, {strict:false})
+
+// Setting Wine version
 data["AppDir"]["app_info"]["version"] = version
+
+// Add necessary packages
 let include = data["AppDir"]["apt"]["include"]
 if (version === "stable") {
     include.unshift("winehq-stable")
@@ -22,10 +35,25 @@ if (version === "staging") {
     include.unshift("wine-staging")
     include.unshift("winehq-staging")
 }
-data["AppDir"]["runtime"]["path_mappings"] = [`/opt/wine-${version}:$APPDIR/opt/wine-${version}`]
 
-let filePath = `wine-${version}.yml`
-fs.writeFileSync(filePath, yaml.stringify(data), 'utf-8');
+// Add wrapper script
+const wrapperContents = fs.readFileSync(path.join(".", wrapperFileName), {encoding:"utf-8"})
+const wrapperContentsLines = wrapperContents.split("\n").map(l => "  - " + l).join("\n")
+let newDataYaml = yaml.stringify(data, {lineWidth:1000})
+newDataYaml = newDataYaml.replace("  - WRAPPER_FILE", wrapperContentsLines)
 
-let output = child_process.spawnSync("./pkg2appimage.AppImage", [`./${filePath}`], {cwd:__dirname, encoding:"utf-8"})
+// Add Wine version in all other needed places
+newDataYaml = newDataYaml.split("{{version}}").join(version)
+
+const fullBuildFolderPath = path.join(__dirname, buildFolder)
+if (!fs.existsSync(fullBuildFolderPath)) {
+    fs.mkdirSync(fullBuildFolderPath)
+}
+
+const filePath = `wine-${version}.yml`
+fs.writeFileSync(path.join(buildFolder, filePath), newDataYaml, 'utf-8');
+
+let output = child_process.spawnSync(path.join(__dirname, "pkg2appimage.AppImage"), 
+    [path.join(".", filePath)], {cwd:fullBuildFolderPath, encoding:"utf-8"})
+console.log(output)    
 console.log(output.output.join("\n"))
