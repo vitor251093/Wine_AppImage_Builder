@@ -5,10 +5,18 @@ const path = require('path')
 
 const args = process.argv.slice(2)
 const version = args[0] || "stable"
+const build = args[1] || "6.0.4"
 
+const distribution_version = "buster"
 const buildFolder = "build"
 const baseFilePath = "wine_base.yml"
 const wrapperFileName = "wrapper"
+
+const packagesByVersion = {
+    "stable":  ["winehq-stable"],
+    "devel":   ["winehq-devel", "wine-devel"],
+    "staging": ["winehq-staging", "wine-staging"]
+}
 
 const requiredPkg2appimageFileName = "pkg2appimage.AppImage"
 const fullPkg2appimagePath = path.join(__dirname, requiredPkg2appimageFileName)
@@ -19,42 +27,37 @@ if (!fs.existsSync(fullPkg2appimagePath)) {
 const dataYaml = fs.readFileSync(baseFilePath, {encoding: 'utf-8'})
 const data = yaml.parse(dataYaml, {strict:false})
 
-// Setting Wine version
-data["AppDir"]["app_info"]["version"] = version
-
-// Add necessary packages
-let include = data["AppDir"]["apt"]["include"]
-if (version === "stable") {
-    include.unshift("winehq-stable")
-}
-if (version === "devel") {
-    include.unshift("wine-devel")
-    include.unshift("winehq-devel")
-}
-if (version === "staging") {
-    include.unshift("wine-staging")
-    include.unshift("winehq-staging")
+// Adding necessary packages
+let include = data["ingredients"]["packages"]
+let packages = packagesByVersion[version]
+while (packages.length > 0) {
+    include.unshift(`${packages.pop()} ${build}~${distribution_version}`)
 }
 
-// Add wrapper script
+// Adding wrapper script
+const wrapperContentsPreSpaces = "  "
 const wrapperContents = fs.readFileSync(path.join(".", wrapperFileName), {encoding:"utf-8"})
-const wrapperContentsLines = wrapperContents.split("\n").map(l => "  - " + l).join("\n")
+const wrapperContentsLines = wrapperContents.split("\n").map(l => wrapperContentsPreSpaces + "- " + l).join("\n")
 let newDataYaml = yaml.stringify(data, {lineWidth:1000})
-newDataYaml = newDataYaml.replace("  - WRAPPER_FILE", wrapperContentsLines)
+newDataYaml = newDataYaml.replace(wrapperContentsPreSpaces + "- WRAPPER_FILE", wrapperContentsLines)
 
-// Add Wine version in all other needed places
-newDataYaml = newDataYaml.split("{{version}}").join(version)
+// Adding Wine version in all other needed places
+newDataYaml = newDataYaml.split("__version__").join(version)
+newDataYaml = newDataYaml.split("__distribution_version__").join(distribution_version)
 
+// Recreating build folder
 const fullBuildFolderPath = path.join(__dirname, buildFolder)
 if (fs.existsSync(fullBuildFolderPath)) {
     fs.rmSync(fullBuildFolderPath, {recursive:true})
 }
 fs.mkdirSync(fullBuildFolderPath)
 
-const filePath = `wine-${version}.yml`
+// Writting recipe file
+const filePath = `wine-${version}-${build}~${distribution_version}.yml`
 fs.writeFileSync(path.join(buildFolder, filePath), newDataYaml, 'utf-8');
 
-let output = child_process.spawnSync(path.join(__dirname, "pkg2appimage.AppImage"), 
+// Running recipe file
+let output = child_process.spawnSync(path.join(__dirname, requiredPkg2appimageFileName),
     [path.join(".", filePath)], {cwd:fullBuildFolderPath, encoding:"utf-8"})
 if (output.output === null) {
     console.log(output)
