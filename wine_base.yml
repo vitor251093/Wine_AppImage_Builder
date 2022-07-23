@@ -18,7 +18,7 @@ AppDir:
     id: org.winehq.wine
     name: wine
     icon: wine
-    version: {{version: stable|devel|staging}}
+    version: version
     exec: bin/bash
     exec_args: wrapper $@
 
@@ -30,9 +30,6 @@ AppDir:
         key_url: 'https://dl.winehq.org/wine-builds/winehq.key'
 
     include:
-      - {{if version = stable: winehq-stable}}
-      - {{if version = devel: winehq-devel,wine-devel}}
-      - {{if version = staging: winehq-staging,wine-staging}}
       - bash
       - cabextract
       - dash
@@ -96,20 +93,20 @@ AppDir:
       - usr/share/zoneinfo
       - usr/share/zoneinfo-icu
       - usr/share/zsh
-      - opt/wine-{{version}}/share/man
-      - opt/wine-{{version}}/share/applications
-      - opt/wine-{{version}}/lib/wine/*.a
-      - opt/wine-{{version}}/lib/wine/*.def
-      - opt/wine-{{version}}/lib/wine/i386-unix/*.a
-      - opt/wine-{{version}}/lib/wine/i386-windows/*.a
-      - opt/wine-{{version}}/lib64/wine/*.a
-      - opt/wine-{{version}}/lib64/wine/*.def
-      - opt/wine-{{version}}/lib64/wine/x86_64-unix/*.a
-      - opt/wine-{{version}}/lib64/wine/x86_64-windows/*.a
+      - opt/wine-*/share/man
+      - opt/wine-*/share/applications
+      - opt/wine-*/lib/wine/*.a
+      - opt/wine-*/lib/wine/*.def
+      - opt/wine-*/lib/wine/i386-unix/*.a
+      - opt/wine-*/lib/wine/i386-windows/*.a
+      - opt/wine-*/lib64/wine/*.a
+      - opt/wine-*/lib64/wine/*.def
+      - opt/wine-*/lib64/wine/x86_64-unix/*.a
+      - opt/wine-*/lib64/wine/x86_64-windows/*.a
 
   runtime:
     path_mappings:
-    - /opt/wine-{{version}}:$APPDIR/opt/wine-{{version}}
+    - /opt/wine-version:$APPDIR/opt/wine-version
 
   test:
     debian:

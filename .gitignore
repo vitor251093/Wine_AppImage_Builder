@@ -1,0 +1,10 @@
+.AppDir/
+
+node_modules/
+
+pkg2appimage.AppImage
+
+wine-stable.yml
+wine-devel.yml
+wine-staging.yml
+
