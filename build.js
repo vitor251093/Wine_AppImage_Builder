@@ -1,14 +1,14 @@
 const fs = require('fs')
-const yaml = require('yaml')
 const child_process = require('child_process')
 const path = require('path')
 
 const args = process.argv.slice(2)
 const version = args[0] || "stable"
 const build = args[1] || "6.0.4"
-
 const architecture = "amd64"
-const distribution_version = "buster"
+const distro = "debian"
+const distro_version = "buster"
+
 const buildFolder = "build"
 const baseFilePath = "wine_base.yml"
 const wrapperFileName = "wrapper"
@@ -25,27 +25,26 @@ if (!fs.existsSync(fullPkg2appimagePath)) {
     throw new Error(`${requiredPkg2appimageFileName} is required to run this script`)
 }
 
-const dataYaml = fs.readFileSync(baseFilePath, {encoding: 'utf-8'})
-const data = yaml.parse(dataYaml, {strict:false})
+let dataYaml = fs.readFileSync(baseFilePath, {encoding: 'utf-8'})
 
-// Adding necessary packages
+// Adding package URL
 let package = packagesByVersion[version]
 if (architecture === "amd64") {
     package += "-" + architecture
 }
-let packageUrl = `https://dl.winehq.org/wine-builds/debian/dists/${distribution_version}/main/binary-${architecture}/${package}_${build}~${distribution_version}-1_${architecture}.deb`
+let packageUrl = `https://dl.winehq.org/wine-builds/${distro}/dists/${distro_version}/main/binary-${architecture}/${package}_${build}~${distro_version}-1_${architecture}.deb`
+dataYaml = dataYaml.split("__package_url__").join(packageUrl)
 
 // Adding wrapper script
 const wrapperContentsPreSpaces = "  "
 const wrapperContents = fs.readFileSync(path.join(".", wrapperFileName), {encoding:"utf-8"})
 const wrapperContentsLines = wrapperContents.split("\n").map(l => wrapperContentsPreSpaces + "- " + l).join("\n")
-let newDataYaml = yaml.stringify(data, {lineWidth:1000})
-newDataYaml = newDataYaml.replace(wrapperContentsPreSpaces + "- WRAPPER_FILE", wrapperContentsLines)
+dataYaml = dataYaml.replace(wrapperContentsPreSpaces + "- WRAPPER_FILE", wrapperContentsLines)
 
-// Adding Wine version in all other needed places
-newDataYaml = newDataYaml.split("__package_url__").join(packageUrl)
-newDataYaml = newDataYaml.split("__version__").join(version)
-newDataYaml = newDataYaml.split("__distribution_version__").join(distribution_version)
+// Adding Wine version, distro distro version
+dataYaml = dataYaml.split("__version__").join(version)
+dataYaml = dataYaml.split("__distribution__").join(distro)
+dataYaml = dataYaml.split("__distribution_version__").join(distro_version)
 
 // Recreating build folder
 const fullBuildFolderPath = path.join(__dirname, buildFolder)
@@ -55,8 +54,8 @@ if (fs.existsSync(fullBuildFolderPath)) {
 fs.mkdirSync(fullBuildFolderPath)
 
 // Writting recipe file
-const filePath = `wine-${version}-${build}~${distribution_version}.yml`
-fs.writeFileSync(path.join(buildFolder, filePath), newDataYaml, 'utf-8');
+const filePath = `wine-${version}-${build}~${distro_version}.yml`
+fs.writeFileSync(path.join(buildFolder, filePath), dataYaml, 'utf-8');
 
 // Running recipe file
 let output = child_process.spawnSync(path.join(__dirname, requiredPkg2appimageFileName),
