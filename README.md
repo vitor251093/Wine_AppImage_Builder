@@ -25,4 +25,4 @@ node ./build.js devel 7.13
 node ./build.js staging 6.10
 ```
 
-The created AppImage will be inside the build/out folder.
+The created AppImage will be inside the dist folder.

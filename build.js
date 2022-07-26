@@ -10,6 +10,7 @@ const distro = "debian"
 const distro_version = "buster"
 
 const buildFolder = "build"
+const distFolder = "dist"
 const baseFilePath = "wine_base.yml"
 const wrapperFileName = "wrapper"
 
@@ -29,6 +30,9 @@ let dataYaml = fs.readFileSync(baseFilePath, {encoding: 'utf-8'})
 
 // Adding package URL
 let package = packagesByVersion[version]
+if (package === undefined) {
+    throw new Error(`Invalid Wine version ${version}`)
+}
 if (architecture === "amd64") {
     package += "-" + architecture
 }
@@ -53,6 +57,12 @@ if (fs.existsSync(fullBuildFolderPath)) {
 }
 fs.mkdirSync(fullBuildFolderPath)
 
+// Recreating dist folder
+const fullDistFolderPath = path.join(__dirname, distFolder)
+if (!fs.existsSync(fullDistFolderPath)) {
+    fs.mkdirSync(fullDistFolderPath)
+}
+
 // Writting recipe file
 const filePath = `wine-${version}-${build}~${distro_version}.yml`
 fs.writeFileSync(path.join(buildFolder, filePath), dataYaml, 'utf-8');
@@ -66,4 +76,6 @@ if (output.output === null) {
 else {
     const log = output.output.join("\n")
     fs.writeFileSync(path.join(buildFolder, "BUILD_LOGS"), log, 'utf-8');
+
+    child_process.execSync(`mv ./build/out/Wine*.AppImage ${path.join(fullDistFolderPath, `Wine-${version}-${build}~${distro_version}.AppImage`)}`)
 }
