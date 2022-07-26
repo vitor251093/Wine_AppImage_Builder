@@ -16,9 +16,10 @@ ingredients:
     - wget -c __package_url__
 script:
   # Create wrapper file manually
-  - cat > ./wrapper << 'EOF'
+  - cat > ./usr/bin/winewrapper << 'EOF'
   - WRAPPER_FILE
   - EOF
+  - chmod +x ./usr/bin/winewrapper
   # Add winetricks
   - wget -q "https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks" -P ./bin && chmod +x ./bin/winetricks
   # Add required desktop file
@@ -26,7 +27,7 @@ script:
   - sed -i -e 's|Icon=wine.*|Icon=/usr/share/icons/wine.svg|g' wine.desktop
   - sed -i -e 's|Name=Wine.*|Name=Wine|g' wine.desktop
   - sed -i -e '/Name\[.*/d' wine.desktop
-  - sed -i -e 's|Exec=wine.*|Exec=wine|g' wine.desktop
+  - sed -i -e 's|Exec=wine.*|Exec=winewrapper|g' wine.desktop
   - echo 'Categories=Utility;Settings;' >> wine.desktop
   - mkdir -p ./usr/share/applications/
   - rm ./usr/share/applications/wine.desktop || true
