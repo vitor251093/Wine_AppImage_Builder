@@ -1,3 +1,7 @@
+# Wine_AppImage_Builder
+
+Script that builds a Wine AppImage, so you can run Wine without installing it.
+
 This project was based in the following projects:
 https://github.com/mmtrt/WINE_AppImage
 https://github.com/AppImage/pkg2appimage/pull/418/files
