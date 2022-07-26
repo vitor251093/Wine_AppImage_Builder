@@ -12,8 +12,7 @@ ingredients:
     - unionfs-fuse
   sources:
     - deb http://deb.debian.org/debian __distribution_version__ main contrib non-free
-  script:
-    - wget -c __package_url__
+    - deb https://dl.winehq.org/wine-builds/debian/ __distribution_version__ main
 script:
   # Create wrapper file manually
   - cat > ./usr/bin/winewrapper << 'EOF'
