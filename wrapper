@@ -21,4 +21,14 @@ elif [[ $VENDOR == *"Radeon"* ]]; then
   export VK_ICD_FILENAMES="/usr/share/vulkan/icd.d/radeon_icd.i686.json:/usr/share/vulkan/icd.d/radeon_icd.x86_64.json"
 fi
 
-bash "$@" | cat
+# Load winecfg if no arguments given
+APPLICATION=""
+if [ -z "$*" ] ; then
+  APPLICATION="winecfg"
+fi
+
+if [ -z "$APPLICATION" ] ; then
+"$@" | cat
+else
+"$APPLICATION" | cat
+fi
