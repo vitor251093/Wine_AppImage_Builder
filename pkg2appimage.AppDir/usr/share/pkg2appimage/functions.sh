@@ -385,7 +385,11 @@ function apt-get.update(){
     local dist_name=${repo_info[2]}
   
     for i in $(seq 3 $((${#repo_info[@]} - 1))); do
-      echo "Caching ${base_url} ${dist_name} ${repo_info[${i}]}..."
+      echo "Caching ${base_url} ${dist_name} ${repo_info[${i}]} (i386)..."
+      local repo_url="${base_url}/dists/${dist_name}/${repo_info[${i}]}/binary-i386/Packages.gz"
+      wget -q "${repo_url}" -O - | gunzip -c | grep -E "^Package:|^Version:|^Depends:|^Filename:" | sed "s|^Filename: |Filename: ${base_url}/|g" >> cache.txt
+
+      echo "Caching ${base_url} ${dist_name} ${repo_info[${i}]} (amd64)..."
       local repo_url="${base_url}/dists/${dist_name}/${repo_info[${i}]}/binary-amd64/Packages.gz"
       wget -q "${repo_url}" -O - | gunzip -c | grep -E "^Package:|^Version:|^Depends:|^Filename:" | sed "s|^Filename: |Filename: ${base_url}/|g" >> cache.txt
     done
@@ -415,7 +419,7 @@ function apt-get.do-download(){
     package=$(cat cache.txt | grep -A 3 ^"Package: ${package_name}"$ \
                             | grep -B 1 -A 2 -m 1 ^"Version: ${package_version}")
   fi
-  
+
   local dependencies=$(echo "$package" | grep ^"Depends: "                   \
                                        | cut -c 9-                           \
                                        | sed "s|,|\n|g"                      \
@@ -424,9 +428,6 @@ function apt-get.do-download(){
   local package_url=$(echo "$package" | grep ^"Filename: "               \
                                       | cut -c 11-)
   
-   
-  echo -e "Detected dependencies:\n${dependencies}"
-
   [ ! -f "${package_url}" ] && {
     [ ! "${package_url}" = "" ] && {
       wget -c "${package_url}"
@@ -437,24 +438,28 @@ function apt-get.do-download(){
   
   unset package_url
   
-  printf '%s' "$dependencies" | while IFS= read -r depend
+  if [ -z "$dependencies" ] ; then
+    return
+  fi
+  echo -e "Detected dependencies:\n${dependencies}"
+
+  while IFS= read -r depend;
   do
-    depend2=`echo $depend | sed 's/^ *//g' | sed 's/ *$//g'`
-    echo "Starting dependency ${depend2}"
-    depend_name=`echo $depend2 | sed 's/ .*//g'`
-    depend_version=`echo $depend2 | sed 's/^[^ ]* //g'`
+    depend2=`echo "$depend" | sed 's/^ *//g' | sed 's/ *$//g'`
+    depend_name=`echo "$depend2" | sed 's/ .*//g'`
+    depend_version=`echo "$depend2" | sed 's/^[^ ]* //g'`
     if [ "$depend_name" = "$depend_version" ]; then
       apt-get.do-download "${depend_name}"
     else
-      depend_version=`echo $depend_version | sed 's/[\(\)]//g'`
+      depend_version=`echo "$depend_version" | sed 's/[\(\)]//g'`
       if [[ $depend_version == "= "* ]] ;
       then
-        depend_version=`echo $depend_version | sed 's/^= //g'`
+        depend_version=`echo "$depend_version" | sed 's/^= //g'`
         apt-get.do-download "${depend_name}=${depend_version}"
       else
         # >=
         apt-get.do-download "${depend_name}"
       fi
     fi
-  done
+  done <<< "$dependencies"
 }
