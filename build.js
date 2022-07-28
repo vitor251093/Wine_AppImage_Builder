@@ -20,7 +20,7 @@ const packagesByVersion = {
     "staging": ["winehq-staging", "wine-staging"]
 }
 
-const requiredPkg2appimageFileName = "pkg2appimage.AppImage"
+const requiredPkg2appimageFileName = path.join("pkg2appimage.AppDir", "AppRun")
 const fullPkg2appimagePath = path.join(__dirname, requiredPkg2appimageFileName)
 if (!fs.existsSync(fullPkg2appimagePath)) {
     throw new Error(`${requiredPkg2appimageFileName} is required to run this script`)
@@ -44,8 +44,8 @@ dataYaml = dataYaml.replace(wrapperContentsPreSpaces + "- WRAPPER_FILE", wrapper
 
 // Adding Wine version, distro distro version
 dataYaml = dataYaml.split("__version__").join(version)
-dataYaml = dataYaml.split("__distribution__").join(distro)
-dataYaml = dataYaml.split("__distribution_version__").join(distro_version)
+dataYaml = dataYaml.split("__distro__").join(distro)
+dataYaml = dataYaml.split("__distro_version__").join(distro_version)
 
 // Recreating build folder
 const fullBuildFolderPath = path.join(__dirname, buildFolder)

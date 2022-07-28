@@ -1,7 +1,7 @@
 app: Wine
 binpatch: true
 ingredients:
-  dist: __distribution_version__
+  dist: __distro_version__
   packages: 
     - bash
     - cabextract
@@ -11,8 +11,8 @@ ingredients:
     - mesa-utils
     - unionfs-fuse
   sources:
-    - deb http://deb.debian.org/debian __distribution_version__ main contrib non-free
-    - deb https://dl.winehq.org/wine-builds/debian/ __distribution_version__ main
+    - deb http://deb.debian.org/debian __distro_version__ main contrib non-free
+    - deb https://dl.winehq.org/wine-builds/debian/ __distro_version__ main
 script:
   # Create wrapper file manually
   - cat > ./usr/bin/winewrapper << 'EOF'
