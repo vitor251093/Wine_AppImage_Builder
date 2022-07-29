@@ -16,8 +16,8 @@ const wrapperFileName = "wrapper"
 
 const packagesByVersion = {
     "stable":  ["winehq-stable"],
-    "devel":   ["winehq-devel", "wine-devel"],
-    "staging": ["winehq-staging", "wine-staging"]
+    "devel":   ["winehq-devel"],
+    "staging": ["winehq-staging"]
 }
 
 const requiredPkg2appimageFileName = path.join("pkg2appimage.AppDir", "AppRun")
@@ -66,7 +66,7 @@ fs.writeFileSync(path.join(buildFolder, filePath), dataYaml, 'utf-8');
 
 // Running recipe file
 let output = child_process.spawnSync(path.join(__dirname, requiredPkg2appimageFileName),
-    [path.join(".", filePath)], {cwd:fullBuildFolderPath, encoding:"utf-8"})
+    [path.join(".", filePath)], {cwd:fullBuildFolderPath, encoding:"utf-8", env:{"ARCH": "x86_64"}})
 if (output.output === null) {
     console.log(output)
 }
