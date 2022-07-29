@@ -9,10 +9,11 @@ const build = args[1] || "6.0.4"
 const distro = "debian"
 const distro_version = "buster"
 
+const architecture = "x86_64" // https://github.com/AppImage/AppImageKit/releases/
 const buildFolder = "build"
 const distFolder = "dist"
 const baseFilePath = "wine_base.yml"
-const wrapperFileName = "wrapper"
+const wrapperFileName = "winewrapper"
 
 const packagesByVersion = {
     "stable":  ["winehq-stable"],
@@ -66,12 +67,12 @@ fs.writeFileSync(path.join(buildFolder, filePath), dataYaml, 'utf-8');
 
 // Running recipe file
 let output = child_process.spawnSync(path.join(__dirname, requiredPkg2appimageFileName),
-    [path.join(".", filePath)], {cwd:fullBuildFolderPath, encoding:"utf-8", env:{"ARCH": "x86_64"}})
+    [path.join(".", filePath)], {cwd:fullBuildFolderPath, encoding:"utf-8", env:{"ARCH":architecture}})
 if (output.output === null) {
     console.log(output)
 }
 else {
-    const log = output.output.join("\n")
+    const log = output.output.map(o => Buffer.isBuffer(o) ? Buffer.toString(o) : ("" + o)).join("\n")
     fs.writeFileSync(path.join(buildFolder, "BUILD_LOGS"), log, 'utf-8');
 
     const finalPath = path.join(fullDistFolderPath, `Wine-${version}-${build}~${distro_version}.AppImage`)
@@ -79,5 +80,4 @@ else {
         fs.rmSync(finalPath)
     }
     child_process.execSync(`mv ./build/out/Wine*.AppImage ${finalPath}`)
-
 }

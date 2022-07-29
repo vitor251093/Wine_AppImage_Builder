@@ -13,12 +13,14 @@ export DXVK_CONFIG_FILE=${DXVK_CONFIG_FILE:-"$progHome/dxvk.conf"}
 # check gpu vendor
 VENDOR=$(glxinfo -B | grep "OpenGL vendor")
 
+SLASH="/"
+USR_FOLDER="${SLASH}usr"
 if [[ $VENDOR == *"Intel"* ]]; then
-  export VK_ICD_FILENAMES="/usr/share/vulkan/icd.d/intel_icd.i686.json:/usr/share/vulkan/icd.d/intel_icd.x86_64.json"
+  export VK_ICD_FILENAMES="$USR_FOLDER/share/vulkan/icd.d/intel_icd.i686.json:$USR_FOLDER/share/vulkan/icd.d/intel_icd.x86_64.json"
 elif [[ $VENDOR == *"NVIDIA"* ]]; then
-  export VK_ICD_FILENAMES="/usr/share/vulkan/icd.d/nvidia_icd.json"
+  export VK_ICD_FILENAMES="$USR_FOLDER/share/vulkan/icd.d/nvidia_icd.json"
 elif [[ $VENDOR == *"Radeon"* ]]; then
-  export VK_ICD_FILENAMES="/usr/share/vulkan/icd.d/radeon_icd.i686.json:/usr/share/vulkan/icd.d/radeon_icd.x86_64.json"
+  export VK_ICD_FILENAMES="$USR_FOLDER/share/vulkan/icd.d/radeon_icd.i686.json:$USR_FOLDER/share/vulkan/icd.d/radeon_icd.x86_64.json"
 fi
 
 # Load winecfg if no arguments given
@@ -50,4 +52,6 @@ if [ -z "$APPLICATION" ] ; then
 "$MAIN" "$@" | cat
 else
 "$MAIN" "$APPLICATION" | cat
-fi  
+fi
+
+sleep 1200
