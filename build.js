@@ -74,5 +74,10 @@ else {
     const log = output.output.join("\n")
     fs.writeFileSync(path.join(buildFolder, "BUILD_LOGS"), log, 'utf-8');
 
-    child_process.execSync(`mv ./build/out/Wine*.AppImage ${path.join(fullDistFolderPath, `Wine-${version}-${build}~${distro_version}.AppImage`)}`)
+    const finalPath = path.join(fullDistFolderPath, `Wine-${version}-${build}~${distro_version}.AppImage`)
+    if (fs.existsSync(finalPath)) {
+        fs.rmSync(finalPath)
+    }
+    child_process.execSync(`mv ./build/out/Wine*.AppImage ${finalPath}`)
+
 }
