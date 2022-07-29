@@ -435,6 +435,18 @@ fi
 if [ ! -z "${_binpatch}" ] ; then
   find usr/ -type f -exec sed -i -e 's|/usr|././|g' {} \;
   find usr/ -type f -exec sed -i -e 's@././/bin/env@/usr/bin/env@g' {} \;
+
+  APPDIR=$(pwd)
+  ALL_SYMLINKS=$(find $APPDIR/usr -type l)
+  while IFS= read -r FILE;
+  do
+    if [[ ! -e "$FILE" ]]; then
+      REAL_FILE=$(readlink -m $FILE)
+      NEW_PATH=$(realpath --relative-to="$(dirname $FILE)" "${APPDIR}${REAL_FILE}")
+      rm $FILE
+      ln -s $NEW_PATH $FILE
+    fi
+  done <<< "$ALL_SYMLINKS"
 fi
 
 # Don't suffer from NIH; use LD_PRELOAD to override calls to /usr paths
