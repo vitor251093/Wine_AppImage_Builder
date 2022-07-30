@@ -25,7 +25,8 @@ const baseFilePath = `base_${infoByVersion[version].base}.yml`
 const wineVersion = `${infoByVersion[version].package}=${build}~${distro_version}`
 const appimageVersion = `AI1Wine${infoByVersion[version].readableName}64Bit${build}`
 
-// TODO: crossover and proton need to be supported too
+// TODO: Crossover support is still in development
+// TODO: Proton still needs to be supported too
 
 const requiredPkg2appimageFileName = path.join("pkg2appimage.AppDir", "AppRun")
 const fullPkg2appimagePath = path.join(__dirname, requiredPkg2appimageFileName)
