@@ -1,0 +1,43 @@
+app: Wine
+binpatch: true
+ingredients:
+  dist: __distro_version__
+  packages: 
+    - bash
+    - cabextract
+    - dash
+    - flex
+    - perl
+    - coreutils
+    - mesa-utils
+    - unionfs-fuse
+  sources:
+    - deb http://deb.debian.org/debian __distro_version__ main contrib non-free
+script:
+  - wget __source_code_url__ -O crossover.tar.gz
+  - tar -xf crossover.tar.gz -C .
+  - cd sources/wine && ./configure --enable-win64 && make && make install
+  - echo "__appimage_version__" > ./version
+  # Create wrapper file manually
+  - cat > ./bin/winewrapper << 'EOF'
+  - WRAPPER_FILE
+  - EOF
+  - chmod +x ./bin/winewrapper
+  # Add winetricks
+  - wget -q "https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks" -P ./bin && chmod +x ./bin/winetricks
+  # Add required desktop file
+  - wget -N https://source.winehq.org/git/wine.git/blob_plain/HEAD:/loader/wine.desktop
+  - sed -i -e 's|Icon=wine.*|Icon=/usr/share/icons/wine.svg|g' wine.desktop
+  - sed -i -e 's|Name=Wine.*|Name=Wine|g' wine.desktop
+  - sed -i -e '/Name\[.*/d' wine.desktop
+  - sed -i -e 's|Exec=wine.*|Exec=winewrapper|g' wine.desktop
+  - echo 'Categories=Utility;Settings;' >> wine.desktop
+  - mkdir -p ./usr/share/applications/
+  - rm ./usr/share/applications/wine.desktop || true
+  - cp ./wine.desktop ./usr/share/applications/wine.desktop
+  # Copy App icon to usr/share/icons needed prior to appimage-builder ver 1.x.x
+  - mkdir -p usr/share/icons
+  - wget -N https://source.winehq.org/git/wine.git/blob_plain/HEAD:/dlls/wineandroid.drv/wine.svg
+  - cp wine.svg usr/share/icons
+  # Add WINE official light blue theme
+  - wget -q "https://github.com/mmtrt/sommelier-core/raw/master/themes/light/light.msstyles" -P ./winedata/resources/themes/light

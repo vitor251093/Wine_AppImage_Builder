@@ -3,6 +3,7 @@ binpatch: true
 ingredients:
   dist: __distro_version__
   packages: 
+    - __wine_version__
     - bash
     - cabextract
     - dash

@@ -1,7 +1,6 @@
 const fs = require('fs')
 const child_process = require('child_process')
 const path = require('path')
-const yaml = require('yaml')
 
 const args = process.argv.slice(2)
 const version = args[0] || "stable"
@@ -13,15 +12,16 @@ const architecture = "x86_64" // https://github.com/AppImage/AppImageKit/release
 
 const buildFolder = "build"
 const distFolder = "dist"
-const baseFilePath = "wine_base.yml"
 const wrapperFileName = "winewrapper"
 
 const infoByVersion = {
-    "stable":  {package:"winehq-stable",  readableName:"Stable"},
-    "devel":   {package:"winehq-devel",   readableName:""},
-    "staging": {package:"winehq-staging", readableName:"Staging"}
+    "stable":    {base:"wine",      package:"winehq-stable",  readableName:"Stable"},
+    "devel":     {base:"wine",      package:"winehq-devel",   readableName:""},
+    "staging":   {base:"wine",      package:"winehq-staging", readableName:"Staging"},
+    "crossover": {base:"crossover", package:"crossover",      readableName:"CX"}
 }
 
+const baseFilePath = `base_${infoByVersion[version].base}.yml`
 const wineVersion = `${infoByVersion[version].package}=${build}~${distro_version}`
 const appimageVersion = `AI1Wine${infoByVersion[version].readableName}64Bit${build}`
 
@@ -35,10 +35,6 @@ if (!fs.existsSync(fullPkg2appimagePath)) {
 
 // Adding package URL
 let dataYaml = fs.readFileSync(baseFilePath, {encoding: 'utf-8'})
-const data = yaml.parse(dataYaml, {strict:false})
-let include = data["ingredients"]["packages"]
-include.unshift(wineVersion)
-dataYaml = yaml.stringify(data, {lineWidth:1000})
 
 // Adding wrapper script
 const wrapperContentsPreSpaces = "  "
@@ -46,11 +42,19 @@ const wrapperContents = fs.readFileSync(path.join(".", wrapperFileName), {encodi
 const wrapperContentsLines = wrapperContents.split("\n").map(l => wrapperContentsPreSpaces + "- " + l).join("\n")
 dataYaml = dataYaml.replace(wrapperContentsPreSpaces + "- WRAPPER_FILE", wrapperContentsLines)
 
-// Adding Wine version, distro distro version
+// Adding base file variables
 dataYaml = dataYaml.split("__version__").join(version)
 dataYaml = dataYaml.split("__distro__").join(distro)
 dataYaml = dataYaml.split("__distro_version__").join(distro_version)
 dataYaml = dataYaml.split("__appimage_version__").join(appimageVersion)
+
+if (version === "crossover") {
+    const sourceUrl = `https://media.codeweavers.com/pub/crossover/source/crossover-sources-${build}.tar.gz`
+    dataYaml = dataYaml.split("__source_code_url__").join(sourceUrl)
+}
+else {
+    dataYaml = dataYaml.split("__wine_version__").join(wineVersion)
+}
 
 // Recreating build folder
 const fullBuildFolderPath = path.join(__dirname, buildFolder)
