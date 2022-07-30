@@ -6,20 +6,23 @@ const yaml = require('yaml')
 const args = process.argv.slice(2)
 const version = args[0] || "stable"
 const build = args[1] || "6.0.4"
+
 const distro = "debian"
 const distro_version = "buster"
-
 const architecture = "x86_64" // https://github.com/AppImage/AppImageKit/releases/
+
 const buildFolder = "build"
 const distFolder = "dist"
 const baseFilePath = "wine_base.yml"
 const wrapperFileName = "winewrapper"
 
-const packagesByVersion = {
-    "stable":  ["winehq-stable"],
-    "devel":   ["winehq-devel"],
-    "staging": ["winehq-staging"]
+const infoByVersion = {
+    "stable":  {package:"winehq-stable",  readableName:"Stable"},
+    "devel":   {package:"winehq-devel",   readableName:""},
+    "staging": {package:"winehq-staging", readableName:"Staging"}
 }
+
+// TODO: crossover and proton need to be supported too
 
 const requiredPkg2appimageFileName = path.join("pkg2appimage.AppDir", "AppRun")
 const fullPkg2appimagePath = path.join(__dirname, requiredPkg2appimageFileName)
@@ -31,10 +34,8 @@ if (!fs.existsSync(fullPkg2appimagePath)) {
 let dataYaml = fs.readFileSync(baseFilePath, {encoding: 'utf-8'})
 const data = yaml.parse(dataYaml, {strict:false})
 let include = data["ingredients"]["packages"]
-let packages = packagesByVersion[version]
-while (packages.length > 0) {
-    include.unshift(`${packages.pop()}=${build}~${distro_version}`)
-}
+let package = infoByVersion[version].package
+include.unshift(`${package}=${build}~${distro_version}`)
 dataYaml = yaml.stringify(data, {lineWidth:1000})
 
 // Adding wrapper script
@@ -73,7 +74,7 @@ while (1) {
     const log = (output.output || []).map(o => Buffer.isBuffer(o) ? Buffer.toString(o) : ("" + o)).join("\n")
     fs.writeFileSync(path.join(buildFolder, "BUILD_LOGS"), log, 'utf-8');
 
-    const finalPath = path.join(fullDistFolderPath, `Wine-${version}-${build}~${distro_version}.AppImage`)
+    const finalPath = path.join(fullDistFolderPath, `AI1Wine${infoByVersion[version].readableName}64Bit${build}.AppImage`)
     if (fs.existsSync(finalPath)) {
         fs.rmSync(finalPath)
     }
