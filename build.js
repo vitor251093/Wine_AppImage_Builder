@@ -65,19 +65,23 @@ if (!fs.existsSync(fullDistFolderPath)) {
 const filePath = `wine-${version}-${build}~${distro_version}.yml`
 fs.writeFileSync(path.join(buildFolder, filePath), dataYaml, 'utf-8');
 
-// Running recipe file
-let output = child_process.spawnSync(path.join(__dirname, requiredPkg2appimageFileName),
-    [path.join(".", filePath)], {cwd:fullBuildFolderPath, encoding:"utf-8", env:{"ARCH":architecture}})
-if (output.output === null) {
-    console.log(output)
-}
-else {
-    const log = output.output.map(o => Buffer.isBuffer(o) ? Buffer.toString(o) : ("" + o)).join("\n")
+while (1) {
+    // Running recipe file
+    let output = child_process.spawnSync(path.join(__dirname, requiredPkg2appimageFileName),
+            [path.join(".", filePath)], {cwd:fullBuildFolderPath, encoding:"utf-8", env:{"ARCH":architecture}})
+
+    const log = (output.output || []).map(o => Buffer.isBuffer(o) ? Buffer.toString(o) : ("" + o)).join("\n")
     fs.writeFileSync(path.join(buildFolder, "BUILD_LOGS"), log, 'utf-8');
 
     const finalPath = path.join(fullDistFolderPath, `Wine-${version}-${build}~${distro_version}.AppImage`)
     if (fs.existsSync(finalPath)) {
         fs.rmSync(finalPath)
     }
-    child_process.execSync(`mv ./build/out/Wine*.AppImage ${finalPath}`)
+    try {
+        child_process.execSync(`mv ./build/out/Wine*.AppImage ${finalPath}`)
+    }
+    catch(e){
+        continue
+    }
+    break
 }

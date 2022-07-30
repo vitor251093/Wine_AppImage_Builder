@@ -441,10 +441,11 @@ if [ ! -z "${_binpatch}" ] ; then
   while IFS= read -r FILE;
   do
     if [[ ! -e "$FILE" ]]; then
+      echo "Fixing symlink at $FILE..."
       REAL_FILE=$(readlink -m $FILE)
       NEW_PATH=$(realpath --relative-to="$(dirname $FILE)" "${APPDIR}${REAL_FILE}")
-      rm $FILE
-      ln -s $NEW_PATH $FILE
+      rm $FILE && ln -s $NEW_PATH $FILE
+      echo "Fixed symlink at $FILE"
     fi
   done <<< "$ALL_SYMLINKS"
 fi
