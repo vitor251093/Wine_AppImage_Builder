@@ -14,6 +14,7 @@ ingredients:
     - deb http://deb.debian.org/debian __distro_version__ main contrib non-free
     - deb https://dl.winehq.org/wine-builds/debian/ __distro_version__ main
 script:
+  - echo "__appimage_version__" > ./version
   # Create wrapper file manually
   - cat > ./bin/winewrapper << 'EOF'
   - WRAPPER_FILE

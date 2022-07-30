@@ -22,6 +22,9 @@ const infoByVersion = {
     "staging": {package:"winehq-staging", readableName:"Staging"}
 }
 
+const wineVersion = `${infoByVersion[version].package}=${build}~${distro_version}`
+const appimageVersion = `AI1Wine${infoByVersion[version].readableName}64Bit${build}`
+
 // TODO: crossover and proton need to be supported too
 
 const requiredPkg2appimageFileName = path.join("pkg2appimage.AppDir", "AppRun")
@@ -34,8 +37,7 @@ if (!fs.existsSync(fullPkg2appimagePath)) {
 let dataYaml = fs.readFileSync(baseFilePath, {encoding: 'utf-8'})
 const data = yaml.parse(dataYaml, {strict:false})
 let include = data["ingredients"]["packages"]
-let package = infoByVersion[version].package
-include.unshift(`${package}=${build}~${distro_version}`)
+include.unshift(wineVersion)
 dataYaml = yaml.stringify(data, {lineWidth:1000})
 
 // Adding wrapper script
@@ -48,6 +50,7 @@ dataYaml = dataYaml.replace(wrapperContentsPreSpaces + "- WRAPPER_FILE", wrapper
 dataYaml = dataYaml.split("__version__").join(version)
 dataYaml = dataYaml.split("__distro__").join(distro)
 dataYaml = dataYaml.split("__distro_version__").join(distro_version)
+dataYaml = dataYaml.split("__appimage_version__").join(appimageVersion)
 
 // Recreating build folder
 const fullBuildFolderPath = path.join(__dirname, buildFolder)
@@ -74,7 +77,7 @@ while (1) {
     const log = (output.output || []).map(o => Buffer.isBuffer(o) ? Buffer.toString(o) : ("" + o)).join("\n")
     fs.writeFileSync(path.join(buildFolder, "BUILD_LOGS"), log, 'utf-8');
 
-    const finalPath = path.join(fullDistFolderPath, `AI1Wine${infoByVersion[version].readableName}64Bit${build}.AppImage`)
+    const finalPath = path.join(fullDistFolderPath, appimageVersion + ".AppImage")
     if (fs.existsSync(finalPath)) {
         fs.rmSync(finalPath)
     }
