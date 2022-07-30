@@ -73,7 +73,8 @@ if (!fs.existsSync(fullDistFolderPath)) {
 const filePath = `wine-${version}-${build}~${distro_version}.yml`
 fs.writeFileSync(path.join(buildFolder, filePath), dataYaml, 'utf-8');
 
-while (1) {
+let tries = 3
+while (tries-- > 0) {
     // Running recipe file
     let output = child_process.spawnSync(path.join(__dirname, requiredPkg2appimageFileName),
             [path.join(".", filePath)], {cwd:fullBuildFolderPath, encoding:"utf-8", env:{"ARCH":architecture}})

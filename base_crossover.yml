@@ -16,7 +16,8 @@ ingredients:
 script:
   - wget __source_code_url__ -O crossover.tar.gz
   - tar -xf crossover.tar.gz -C .
-  - cd sources/wine && ./configure --enable-win64 && make && make install
+  - cd sources/wine
+  - ./configure --enable-win64 && make && make install
   - echo "__appimage_version__" > ./version
   # Create wrapper file manually
   - cat > ./bin/winewrapper << 'EOF'
