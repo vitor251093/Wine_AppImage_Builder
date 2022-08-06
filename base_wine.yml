@@ -16,10 +16,8 @@ ingredients:
     - deb https://dl.winehq.org/wine-builds/debian/ __distro_version__ main
 script:
   - echo "__appimage_version__" > ./version
-  # Create wrapper file manually
-  - cat > ./bin/winewrapper << 'EOF'
-  - WRAPPER_FILE
-  - EOF
+  # Copy wrapper file
+  - cp ../../../winewrapper ./bin/winewrapper
   - chmod +x ./bin/winewrapper
   # Add winetricks
   - wget -q "https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks" -P ./bin && chmod +x ./bin/winetricks
