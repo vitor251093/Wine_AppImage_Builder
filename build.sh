@@ -4,15 +4,6 @@ DIR="$(dirname "${BASH_SOURCE[0]}")"
 DIR="$(realpath "${DIR}")"
 cd "$DIR"
 
-while getopts u:a:f: flag
-do
-    case "${flag}" in
-        u) username=${OPTARG};;
-        a) age=${OPTARG};;
-        f) fullname=${OPTARG};;
-    esac
-done
-
 version="${1:-stable}"
 build="${2:-6.0.4}"
 

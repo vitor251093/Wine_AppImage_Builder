@@ -3,6 +3,7 @@ binpatch: true
 ingredients:
   dist: __distro_version__
   packages: 
+    - __wine_version__
     - bash
     - cabextract
     - dash
@@ -13,11 +14,10 @@ ingredients:
     - unionfs-fuse
   sources:
     - deb http://deb.debian.org/debian __distro_version__ main contrib non-free
+    - deb https://dl.winehq.org/wine-builds/debian/ __distro_version__ main
 script:
-  - wget __source_code_url__ -O crossover.tar.gz
-  - tar -xf crossover.tar.gz -C .
-  - cd sources/wine
-  - ./configure --enable-win64 && make && make install
+  - cp __source_code_location__ ./source_code
+  - cd ./source_code && make && make install
   - echo "__appimage_version__" > ./version
   # Copy wrapper file
   - cp ../../../winewrapper ./bin/winewrapper
