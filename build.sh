@@ -25,16 +25,16 @@ distFolder="dist"
 wrapperFileName="winewrapper"
 
 if [ "$version" = "stable" ]; then
-    declare -A info=( ["base"]="wine"  ["package"]="winehq-stable"   ["readableName"]="Stable" )
+    declare -A info=( ["base"]="official"  ["package"]="winehq-stable"   ["readableName"]="Stable" )
 fi
 if [ "$version" = "devel" ]; then
-    declare -A info=( ["base"]="wine"  ["package"]="winehq-devel"    ["readableName"]="" )
+    declare -A info=( ["base"]="official"  ["package"]="winehq-devel"    ["readableName"]="" )
 fi
 if [ "$version" = "staging" ]; then
-    declare -A info=( ["base"]="wine"  ["package"]="winehq-staging"  ["readableName"]="Staging" )
+    declare -A info=( ["base"]="official"  ["package"]="winehq-staging"  ["readableName"]="Staging" )
 fi
 
-baseFilePath="base_${info["base"]}.yml"
+baseFilePath="base_wine_${info["base"]}.yml"
 wineVersion="${info["package"]}=${build}~${distro_version}"
 appimageVersion="AI1Wine${info["readableName"]}64Bit${build}"
 
