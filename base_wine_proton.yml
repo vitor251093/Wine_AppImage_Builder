@@ -15,8 +15,14 @@ ingredients:
     - deb http://deb.debian.org/debian __distro_version__ main contrib non-free
     - deb https://dl.winehq.org/wine-builds/debian/ __distro_version__ main
 script:
-  - ls ../../../
-  - mv ../../../__wine_build_folder_name__ ./opt/wine-__version__
+  - cd opt
+  - sourceUrl="https://github.com/GloriousEggroll/wine-ge-custom/releases/download/GE-Proton__proton_build__/wine-lutris-GE-Proton__proton_build__-x86_64.tar.xz"
+  - wget $sourceUrl -O proton.tar.xz
+  - tar -xf proton.tar.xz -C .
+  - rm -r ./wine-*
+  - mv lutris* wine-proton
+  - rm proton.tar.xz
+  - cd ..
   # Needs to delete the old Wine and recreate the symlinks properly
   - echo "__appimage_version__" > ./version
   # Copy wrapper file
