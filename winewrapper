@@ -44,8 +44,10 @@ elif [ -e "$APPDIR/bin/$BINARY_NAME" ] ; then
   MAIN="$APPDIR/bin/$BINARY_NAME"
 elif [ -e "$APPDIR/usr/bin/$BINARY_NAME" ] ; then
   MAIN="$APPDIR/usr/bin/$BINARY_NAME"
-else
+elif [ -e "$APPDIR/usr/bin/wine64" ] ; then
   MAIN="$APPDIR/usr/bin/wine64"
+elif [ -e "$APPDIR/usr/bin/wine" ] ; then
+  MAIN="$APPDIR/usr/bin/wine"
 fi
 
 if [ -z "$APPLICATION" ] ; then
