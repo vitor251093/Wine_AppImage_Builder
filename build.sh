@@ -40,7 +40,7 @@ if [ "$version" = "proton" ]; then
 fi
 
 bitsLabel=""
-if [[ $REPO_ARCH != "i386" ]] ; then
+if [[ -z $REPO_ARCH || $REPO_ARCH != "i386" ]] ; then
     bitsLabel="64Bit"
 fi
 
