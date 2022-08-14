@@ -391,18 +391,20 @@ function apt-get.update(){
     done
   done <sources.list
 
-  while read line; do
-    local line=$(echo "${line}" | sed 's|[[:space:]]| |g')
-    local repo_info=($(echo ${line} | tr " " "\n"))
-    local base_url=${repo_info[1]}
-    local dist_name=${repo_info[2]}
-  
-    for i in $(seq 3 $((${#repo_info[@]} - 1))); do
-      echo "Caching ${base_url} ${dist_name} ${repo_info[${i}]} (amd64)..."
-      local repo_url="${base_url}/dists/${dist_name}/${repo_info[${i}]}/binary-amd64/Packages.gz"
-      wget -q "${repo_url}" -O - | gunzip -c | grep -E "^Package:|^Version:|^Depends:|^Filename:" | sed "s|^Filename: |Filename: ${base_url}/|g" >> cache.txt
-    done
-  done <sources.list
+  if [[ -z $REPO_ARCH || $REPO_ARCH != "i386" ]] ; then
+    while read line; do
+      local line=$(echo "${line}" | sed 's|[[:space:]]| |g')
+      local repo_info=($(echo ${line} | tr " " "\n"))
+      local base_url=${repo_info[1]}
+      local dist_name=${repo_info[2]}
+    
+      for i in $(seq 3 $((${#repo_info[@]} - 1))); do
+        echo "Caching ${base_url} ${dist_name} ${repo_info[${i}]} (amd64)..."
+        local repo_url="${base_url}/dists/${dist_name}/${repo_info[${i}]}/binary-amd64/Packages.gz"
+        wget -q "${repo_url}" -O - | gunzip -c | grep -E "^Package:|^Version:|^Depends:|^Filename:" | sed "s|^Filename: |Filename: ${base_url}/|g" >> cache.txt
+      done
+    done <sources.list
+  fi
 }
 
 function apt-get.do-download(){

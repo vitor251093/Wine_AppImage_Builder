@@ -15,7 +15,7 @@ winebuild="${build}"
 
 distro="debian"
 distro_version="buster"
-export ARCH="x86_64" # https://github.com/AppImage/AppImageKit/releases/
+export ARCH="x86_64"
 
 buildFolder="build"
 distFolder="dist"
@@ -39,9 +39,14 @@ if [ "$version" = "proton" ]; then
     winebuild="${4:-7.14}"
 fi
 
+bitsLabel=""
+if [[ $REPO_ARCH != "i386" ]] ; then
+    bitsLabel="64Bit"
+fi
+
 baseFilePath="base_wine_${info["base"]}.yml"
 wineVersion="${info["package"]}=${winebuild}~${distro_version}"
-appimageVersion="AI1Wine${info["readableName"]}64Bit${build}"
+appimageVersion="AI1Wine${info["readableName"]}${bitsLabel}${build}"
 
 # TODO: Crossover support is still in development
 # TODO: Proton still needs to be supported too
