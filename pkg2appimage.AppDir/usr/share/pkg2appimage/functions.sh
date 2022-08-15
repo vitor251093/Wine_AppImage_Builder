@@ -376,7 +376,7 @@ patch_strings_in_file() {
 function apt-get.update(){
   echo -n > cache.txt
   
-  cat Packages.gz | gunzip -c | grep -E "^Package:|^Version:|^Depends:|^Filename:" >> cache.txt || true
+  cat Packages.gz | gunzip -c | grep -E "^Package:|^Version:|^Depends:|^Recommends:|^Filename:" >> cache.txt || true
   
   while read line; do
     local line=$(echo "${line}" | sed 's|[[:space:]]| |g')
@@ -387,7 +387,7 @@ function apt-get.update(){
     for i in $(seq 3 $((${#repo_info[@]} - 1))); do
       echo "Caching ${base_url} ${dist_name} ${repo_info[${i}]} (i386)..."
       local repo_url="${base_url}/dists/${dist_name}/${repo_info[${i}]}/binary-i386/Packages.gz"
-      wget -q "${repo_url}" -O - | gunzip -c | grep -E "^Package:|^Version:|^Depends:|^Filename:" | sed "s|^Filename: |Filename: ${base_url}/|g" >> cache.txt
+      wget -q "${repo_url}" -O - | gunzip -c | grep -E "^Package:|^Version:|^Depends:|^Recommends:|^Filename:" | sed "s|^Filename: |Filename: ${base_url}/|g" >> cache.txt
     done
   done <sources.list
 
@@ -401,7 +401,7 @@ function apt-get.update(){
       for i in $(seq 3 $((${#repo_info[@]} - 1))); do
         echo "Caching ${base_url} ${dist_name} ${repo_info[${i}]} (amd64)..."
         local repo_url="${base_url}/dists/${dist_name}/${repo_info[${i}]}/binary-amd64/Packages.gz"
-        wget -q "${repo_url}" -O - | gunzip -c | grep -E "^Package:|^Version:|^Depends:|^Filename:" | sed "s|^Filename: |Filename: ${base_url}/|g" >> cache.txt
+        wget -q "${repo_url}" -O - | gunzip -c | grep -E "^Package:|^Version:|^Depends:|^Recommends:|^Filename:" | sed "s|^Filename: |Filename: ${base_url}/|g" >> cache.txt
       done
     done <sources.list
   fi
@@ -422,21 +422,27 @@ function apt-get.do-download(){
 
   already_downloaded_package+=(${package_name})
   
-  local package=$(cat cache.txt | grep -A 3 ^"Package: ${package_name}"$)
+  local package=$(cat cache.txt | grep -A 4 ^"Package: ${package_name}"$)
   if [ -n "$package_version" ] ; then
-    package=$(echo "$package" | grep -B 1 -A 2 ^"Version: ${package_version}")
+    package=$(echo "$package" | grep -B 1 -A 3 ^"Version: ${package_version}")
   fi
-  package=$(echo "$package" | tail -4)
+  package=$(echo "$package" | tail -5)
   if [ -z "$package" ] ; then
     echo "Couldn't find package ${1}"
   fi
 
-  local dependencies=$(echo "$package" | grep ^"Depends: "                   \
-                                       | cut -c 9-                           \
-                                       | sed "s|,|\n|g"                      \
+  local dependencies=$(echo "$package" | grep ^"Depends: " \
+                                       | cut -c 9-         \
+                                       | sed "s|,|\n|g"    \
                                        | cut -d"|" -f1 )
 
-  local package_url=$(echo "$package" | grep ^"Filename: "               \
+  local recommendations=$(echo "$package" | grep ^"Recommends: " \
+                                          | cut -c 12-           \
+                                          | sed "s|,|\n|g"       \
+                                          | cut -d"|" -f1 )
+
+  local package_url=$(echo "$package" | grep ^"Filename: " \
+                                      | head -n 1          \
                                       | cut -c 11-)
   
   [ ! -f "${package_url}" ] && {
@@ -449,6 +455,13 @@ function apt-get.do-download(){
   
   unset package_url
   
+  if [ -n "$recommendations" ] ; then
+    if [ -z "$dependencies" ] ; then
+      dependencies="$recommendations"
+    else
+      dependencies="$dependencies\n$recommendations"
+    fi
+  fi
   if [ -z "$dependencies" ] ; then
     return
   fi
