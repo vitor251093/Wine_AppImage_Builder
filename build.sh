@@ -4,7 +4,7 @@ DIR="$(dirname "${BASH_SOURCE[0]}")"
 DIR="$(realpath "${DIR}")"
 cd "$DIR"
 
-if [ "$#" -le 2 ]; then
+if [ "$#" -le 1 ]; then
     echo "illegal number of parameters"
     exit 1
 fi
@@ -28,24 +28,23 @@ optFolderName="wine-custom"
 if [ "$version" = "stable" ]; then
     declare -A info=( ["base"]="official"  ["package"]="winehq-stable"   ["readableName"]="Stable" )
     optFolderName="wine-stable"
-fi
-if [ "$version" = "devel" ]; then
+elif [ "$version" = "devel" ]; then
     declare -A info=( ["base"]="official"  ["package"]="winehq-devel"    ["readableName"]="" )
     optFolderName="wine-devel"
-fi
-if [ "$version" = "staging" ]; then
+elif [ "$version" = "staging" ]; then
     declare -A info=( ["base"]="official"  ["package"]="winehq-staging"  ["readableName"]="Staging" )
     optFolderName="wine-staging"
-fi
-if [ "$version" = "crossover" ]; then
-    declare -A info=( ["base"]="custom"    ["package"]="winehq-${3}"     ["readableName"]="CX" )
-    winebuild="${4:-stable}"
-    optFolderName="wine-${3}"
-fi
-if [ "$version" = "proton" ]; then
-    declare -A info=( ["base"]="proton"    ["package"]="winehq-${3}"     ["readableName"]="Proton" )
+elif [ "$version" = "crossover" ]; then
+    declare -A info=( ["base"]="custom"    ["package"]="winehq-${3:-stable}"     ["readableName"]="CX" )
     winebuild="${4:-7.14}"
-    optFolderName="wine-${3}"
+    optFolderName="wine-${3:-stable}"
+elif [ "$version" = "proton" ]; then
+    declare -A info=( ["base"]="proton"    ["package"]="winehq-${3:-stable}"     ["readableName"]="Proton" )
+    winebuild="${4:-7.14}"
+    optFolderName="wine-${3:-stable}"
+else
+    declare -A info=( ["base"]="custom"    ["package"]="winehq-${3:-stable}"     ["readableName"]="Custom" )
+    winebuild="${4:-7.14}"
 fi
 
 bitsLabel=""
@@ -57,7 +56,6 @@ baseFilePath="base_wine_${info["base"]}.yml"
 wineVersion="${info["package"]}:${REPO_ARCH}=${winebuild}~${distro_version}"
 appimageVersion="AI1Wine${info["readableName"]}${bitsLabel}${build}"
 
-# TODO: Crossover support is still in development
 # TODO: Proton still needs to be supported too
 
 requiredPkg2appimageFileName="pkg2appimage.AppDir/AppRun"
@@ -97,13 +95,22 @@ if [ "$version" = "crossover" ]; then
     mkdir -p "../$optFolderName"
     tar -xf "./wine-crossover-$build.tar.gz" -C "../$optFolderName"
 
-    dataYaml="${dataYaml//__wine_build_folder_name__/"$optFolderName"}"
-
     cd ..
 fi
 if [ "$version" = "proton" ]; then
-    urlBuild="${build//./-}"
-    dataYaml="${dataYaml//__proton_build__/"$urlBuild"}"
+    mkdir -p ./tmp
+    cd tmp
+
+    if [ ! -f "$DIR/tmp/wine-proton-$build.tar.gz" ]; then
+        urlBuild="${build//./-}"
+        sourceUrl="https://github.com/GloriousEggroll/wine-ge-custom/releases/download/GE-Proton${urlBuild}/wine-lutris-GE-Proton${urlBuild}-x86_64.tar.xz"
+        wget $sourceUrl -O "./wine-proton-$build.tar.xz"
+    fi
+    rm -r "../$optFolderName" || true
+    mkdir -p "../$optFolderName"
+    tar -xf "./wine-proton-$build.tar.xz" -C "../$optFolderName"
+
+    cd ..
 fi
 
 if [ ! -d "$DIR/$optFolderName" ]; then
@@ -117,9 +124,8 @@ dataYaml="${dataYaml//__version__/"$version"}"
 dataYaml="${dataYaml//__distro__/"$distro"}"
 dataYaml="${dataYaml//__distro_version__/"$distro_version"}"
 dataYaml="${dataYaml//__appimage_version__/"$appimageVersion"}"
-
 dataYaml="${dataYaml//__wine_version__/"$wineVersion"}"
-
+dataYaml="${dataYaml//__wine_build_folder_name__/"$optFolderName"}"
 
 # Recreating build folder
 fullBuildFolderPath="$DIR/$buildFolder"
