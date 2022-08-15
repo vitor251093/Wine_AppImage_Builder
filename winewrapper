@@ -40,6 +40,8 @@ if [ -n "$1" ] && [ -e "$APPDIR/bin/$1" ] ; then
   MAIN="$APPDIR/bin/$1" ; shift
 elif [ -n "$1" ] && [ -e "$APPDIR/usr/bin/$1" ] ; then
   MAIN="$APPDIR/usr/bin/$1" ; shift
+elif [ -n "$1" ] && [ -e "$1" ] ; then
+  MAIN="$1" ; shift
 elif [ -e "$APPDIR/bin/$BINARY_NAME" ] ; then
   MAIN="$APPDIR/bin/$BINARY_NAME"
 elif [ -e "$APPDIR/usr/bin/$BINARY_NAME" ] ; then
@@ -48,6 +50,10 @@ elif [ -e "$APPDIR/usr/bin/wine64" ] ; then
   MAIN="$APPDIR/usr/bin/wine64"
 elif [ -e "$APPDIR/usr/bin/wine" ] ; then
   MAIN="$APPDIR/usr/bin/wine"
+fi
+
+if [ -n "$WINE_WORKDIR" ] ; then
+  cd $WINE_WORKDIR
 fi
 
 if [ -z "$APPLICATION" ] ; then
