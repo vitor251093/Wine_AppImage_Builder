@@ -409,7 +409,7 @@ function apt-get.update(){
 
 function apt-get.do-download(){
   echo "Starting download of package ${1}..."
-  local package_name=$(echo "${1}" | sed 's/=.*//g')
+  local package_name=$(echo "${1}" | sed 's/=.*//g' | sed 's/:.*//g')
   local package_version=$(echo "${1}" | sed 's/^[^=]*=//g')
   if [ "$package_name" = "$package_version" ]; then
     package_version=""
@@ -422,15 +422,11 @@ function apt-get.do-download(){
 
   already_downloaded_package+=(${package_name})
   
-  local package=""
-  if [ -z "$package_version" ] ; then
-    package=$(cat cache.txt | grep -A 3 ^"Package: ${package_name}"$ \
-                            | tail -4)
-  else
-    package=$(cat cache.txt | grep -A 3 ^"Package: ${package_name}"$ \
-                            | grep -B 1 -A 2 ^"Version: ${package_version}" \
-                            | tail -4)
+  local package=$(cat cache.txt | grep -A 3 ^"Package: ${package_name}"$)
+  if [ -n "$package_version" ] ; then
+    package=$(echo "$package" | grep -B 1 -A 2 ^"Version: ${package_version}")
   fi
+  package=$(echo "$package" | tail -4)
   if [ -z "$package" ] ; then
     echo "Couldn't find package ${1}"
   fi

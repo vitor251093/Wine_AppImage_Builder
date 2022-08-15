@@ -12,6 +12,9 @@ fi
 version="${1}"
 build="${2}"
 winebuild="${build}"
+if [[ -z $REPO_ARCH || $REPO_ARCH != "i386" ]] ; then
+    REPO_ARCH="amd64"
+fi
 
 distro="debian"
 distro_version="buster"
@@ -46,12 +49,12 @@ if [ "$version" = "proton" ]; then
 fi
 
 bitsLabel=""
-if [[ -z $REPO_ARCH || $REPO_ARCH != "i386" ]] ; then
+if [[ $REPO_ARCH == "amd64" ]] ; then
     bitsLabel="64Bit"
 fi
 
 baseFilePath="base_wine_${info["base"]}.yml"
-wineVersion="${info["package"]}=${winebuild}~${distro_version}"
+wineVersion="${info["package"]}:${REPO_ARCH}=${winebuild}~${distro_version}"
 appimageVersion="AI1Wine${info["readableName"]}${bitsLabel}${build}"
 
 # TODO: Crossover support is still in development

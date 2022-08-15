@@ -4,6 +4,7 @@ ingredients:
   dist: __distro_version__
   packages: 
     - __wine_version__
+    # wine requires
     - bash
     - cabextract
     - dash
@@ -11,6 +12,9 @@ ingredients:
     - coreutils
     - mesa-utils
     - unionfs-fuse
+    # wine recommends
+    - libfreetype6:i386
+    # winetricks
     - curl
     - unzip
     - p7zip
