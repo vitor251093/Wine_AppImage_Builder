@@ -4,7 +4,7 @@ DIR="$(dirname "${BASH_SOURCE[0]}")"
 DIR="$(realpath "${DIR}")"
 cd "$DIR"
 
-if [$# -le 2]; then 
+if [ "$#" -le 2 ]; then
     echo "illegal number of parameters"
     exit 1
 fi
