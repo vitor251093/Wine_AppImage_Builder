@@ -11,6 +11,10 @@ ingredients:
     - coreutils
     - mesa-utils
     - unionfs-fuse
+    - curl
+    - unzip
+    - p7zip
+    - grep
   sources:
     - deb http://deb.debian.org/debian __distro_version__ main contrib non-free
     - deb https://dl.winehq.org/wine-builds/debian/ __distro_version__ main
