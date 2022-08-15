@@ -24,4 +24,10 @@ In case you need to create an AppImage for any other Wine version, just add the 
 ./build.sh staging 6.10
 ```
 
-The created AppImage will be inside the dist folder.
+The created AppImage will be inside the dist folder. If you need a 32-bit only AppImage, just use `build32.sh` instead. The arguments should still be the same. 
+
+If you want to create an AppImage for a CrossOver version, you need to also add a secondary version, which will be used as reference to download the required dependencies, like the example below:
+
+```
+./build.sh crossover 21.2.0 stable 6.0.4
+```
