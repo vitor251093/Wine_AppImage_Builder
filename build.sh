@@ -61,17 +61,43 @@ fi
 # Loading base file
 dataYaml=$(cat $baseFilePath)
 
+optFolderName="wine-custom"
 if [ "$version" = "crossover" ]; then
-    sourceUrl="https://media.codeweavers.com/pub/crossover/source/crossover-sources-${build}.tar.gz"
-    wget $sourceUrl -O crossover.tar.gz
-    tar -xf crossover.tar.gz -C .
-    cd sources/wine
-    ./configure CC="clang" CXX="clang++" --enable-win64 --disable-winedbg --without-x --without-vulkan --disable-mscms # requires clang flex bison libfreetype6-dev
-    exit 0
+    optFolderName="wine-crossover"
+    mkdir -p ./tmp
+    cd tmp
+    rm -rf ./build || true
+    if [ -d "$DIR/tmp/build" ]; then
+        sudo rm -rf ./build || true
+    fi
+
+    if [ ! -f "$DIR/tmp/crossover-sources-${build}.tar.gz" ]; then
+        sourceUrl="https://media.codeweavers.com/pub/crossover/source/crossover-sources-${build}.tar.gz"
+        wget $sourceUrl -O "crossover-sources-${build}.tar.gz"
+    fi
+    tar -xf "crossover-sources-${build}.tar.gz" -C .
+
+    mv sources/wine sources/wine-git
+    mv sources build
+    cp ../wine_crossover_distversion.h ./build/wine-git/programs/winedbg/distversion.h
+    
+    docker run --rm -v $DIR/tmp/build/:/build/ molotovsh/wine-builder-ubuntu build.sh $build
+    mv "./build/wine-runner-$build.tgz" "./wine-crossover-$build.tar.gz"
+    mkdir "./$optFolderName"
+    tar -xf "./wine-crossover-$build.tar.gz" -C "../$optFolderName"
+
+    dataYaml="${dataYaml//__wine_build_folder_name__/"$optFolderName"}"
+
+    cd ..
 fi
 if [ "$version" = "proton" ]; then
     urlBuild="${build//./-}"
     dataYaml="${dataYaml//__proton_build__/"$urlBuild"}"
+fi
+
+if [ ! -d "$DIR/$optFolderName" ]; then
+    echo "$DIR/$optFolderName is required to run this script"
+    exit 1
 fi
 
 # Adding base file variables
