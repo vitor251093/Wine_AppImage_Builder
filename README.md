@@ -26,8 +26,9 @@ In case you need to create an AppImage for any other Wine version, just add the 
 
 The created AppImage will be inside the dist folder. If you need a 32-bit only AppImage, just use `build32.sh` instead. The arguments should still be the same. 
 
-If you want to create an AppImage for a CrossOver version, you need to also add a secondary version, which will be used as reference to download the required dependencies, like the example below:
+If you want to create an AppImage for a CrossOver or Proton build, you need to also add a secondary version, which will be used as reference to download the required dependencies, like the example below:
 
 ```
 ./build.sh crossover 21.2.0 stable 6.0.4
+./build.sh proton 7.25 stable 6.0.4
 ```

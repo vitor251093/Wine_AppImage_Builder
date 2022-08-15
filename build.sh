@@ -36,15 +36,15 @@ elif [ "$version" = "staging" ]; then
     optFolderName="wine-staging"
 elif [ "$version" = "crossover" ]; then
     declare -A info=( ["base"]="custom"    ["package"]="winehq-${3:-stable}"     ["readableName"]="CX" )
-    winebuild="${4:-7.14}"
+    winebuild="${4:-6.0.4}"
     optFolderName="wine-${3:-stable}"
 elif [ "$version" = "proton" ]; then
-    declare -A info=( ["base"]="proton"    ["package"]="winehq-${3:-stable}"     ["readableName"]="Proton" )
-    winebuild="${4:-7.14}"
+    declare -A info=( ["base"]="custom"    ["package"]="winehq-${3:-stable}"     ["readableName"]="Proton" )
+    winebuild="${4:-6.0.4}"
     optFolderName="wine-${3:-stable}"
 else
     declare -A info=( ["base"]="custom"    ["package"]="winehq-${3:-stable}"     ["readableName"]="Custom" )
-    winebuild="${4:-7.14}"
+    winebuild="${4:-6.0.4}"
 fi
 
 bitsLabel=""
@@ -55,8 +55,6 @@ fi
 baseFilePath="base_wine_${info["base"]}.yml"
 wineVersion="${info["package"]}:${REPO_ARCH}=${winebuild}~${distro_version}"
 appimageVersion="AI1Wine${info["readableName"]}${bitsLabel}${build}"
-
-# TODO: Proton still needs to be supported too
 
 requiredPkg2appimageFileName="pkg2appimage.AppDir/AppRun"
 fullPkg2appimagePath="$DIR/$requiredPkg2appimageFileName"
@@ -101,14 +99,14 @@ if [ "$version" = "proton" ]; then
     mkdir -p ./tmp
     cd tmp
 
-    if [ ! -f "$DIR/tmp/wine-proton-$build.tar.gz" ]; then
+    if [ ! -f "$DIR/tmp/wine-proton-$build.tar.xz" ]; then
         urlBuild="${build//./-}"
         sourceUrl="https://github.com/GloriousEggroll/wine-ge-custom/releases/download/GE-Proton${urlBuild}/wine-lutris-GE-Proton${urlBuild}-x86_64.tar.xz"
         wget $sourceUrl -O "./wine-proton-$build.tar.xz"
     fi
     rm -r "../$optFolderName" || true
-    mkdir -p "../$optFolderName"
-    tar -xf "./wine-proton-$build.tar.xz" -C "../$optFolderName"
+    tar -xf "./wine-proton-$build.tar.xz" -C .
+    mv lutris-GE-* "../$optFolderName"
 
     cd ..
 fi
