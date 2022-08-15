@@ -14,7 +14,7 @@ More details about pkg2appimage and its syntax here:
 With the project folder opened with the terminal, run the following command to install Wine 6.0.4 (stable):
 
 ```
-./build.sh
+./build.sh stable 6.0.4
 ```
 
 In case you need to create an AppImage for any other Wine version, just add the version and build as arguments, like the examples below:
