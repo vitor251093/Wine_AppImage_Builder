@@ -21,22 +21,28 @@ buildFolder="build"
 distFolder="dist"
 wrapperFileName="winewrapper"
 
+optFolderName="wine-custom"
 if [ "$version" = "stable" ]; then
     declare -A info=( ["base"]="official"  ["package"]="winehq-stable"   ["readableName"]="Stable" )
+    optFolderName="wine-stable"
 fi
 if [ "$version" = "devel" ]; then
     declare -A info=( ["base"]="official"  ["package"]="winehq-devel"    ["readableName"]="" )
+    optFolderName="wine-devel"
 fi
 if [ "$version" = "staging" ]; then
     declare -A info=( ["base"]="official"  ["package"]="winehq-staging"  ["readableName"]="Staging" )
+    optFolderName="wine-staging"
 fi
 if [ "$version" = "crossover" ]; then
     declare -A info=( ["base"]="custom"    ["package"]="winehq-${3}"     ["readableName"]="CX" )
     winebuild="${4:-stable}"
+    optFolderName="wine-${3}"
 fi
 if [ "$version" = "proton" ]; then
     declare -A info=( ["base"]="proton"    ["package"]="winehq-${3}"     ["readableName"]="Proton" )
     winebuild="${4:-7.14}"
+    optFolderName="wine-${3}"
 fi
 
 bitsLabel=""
@@ -61,29 +67,31 @@ fi
 # Loading base file
 dataYaml=$(cat $baseFilePath)
 
-optFolderName="wine-custom"
 if [ "$version" = "crossover" ]; then
-    optFolderName="wine-crossover"
     mkdir -p ./tmp
     cd tmp
-    rm -rf ./build || true
-    if [ -d "$DIR/tmp/build" ]; then
-        sudo rm -rf ./build || true
-    fi
 
-    if [ ! -f "$DIR/tmp/crossover-sources-${build}.tar.gz" ]; then
-        sourceUrl="https://media.codeweavers.com/pub/crossover/source/crossover-sources-${build}.tar.gz"
-        wget $sourceUrl -O "crossover-sources-${build}.tar.gz"
-    fi
-    tar -xf "crossover-sources-${build}.tar.gz" -C .
+    if [ ! -f "$DIR/tmp/wine-crossover-$build.tar.gz" ]; then
+        rm -rf ./build || true
+        if [ -d "$DIR/tmp/build" ]; then
+            sudo rm -rf ./build || true
+        fi
 
-    mv sources/wine sources/wine-git
-    mv sources build
-    cp ../wine_crossover_distversion.h ./build/wine-git/programs/winedbg/distversion.h
-    
-    docker run --rm -v $DIR/tmp/build/:/build/ molotovsh/wine-builder-ubuntu build.sh $build
-    mv "./build/wine-runner-$build.tgz" "./wine-crossover-$build.tar.gz"
-    mkdir "./$optFolderName"
+        if [ ! -f "$DIR/tmp/crossover-sources-${build}.tar.gz" ]; then
+            sourceUrl="https://media.codeweavers.com/pub/crossover/source/crossover-sources-${build}.tar.gz"
+            wget $sourceUrl -O "crossover-sources-${build}.tar.gz"
+        fi
+        tar -xf "crossover-sources-${build}.tar.gz" -C .
+
+        mv sources/wine sources/wine-git
+        mv sources build
+        cp ../wine_crossover_distversion.h ./build/wine-git/programs/winedbg/distversion.h
+        
+        docker run --rm -v $DIR/tmp/build/:/build/ molotovsh/wine-builder-ubuntu build.sh $build
+        mv "./build/wine-runner-$build.tgz" "./wine-crossover-$build.tar.gz"
+    fi
+    rm -r "../$optFolderName" || true
+    mkdir -p "../$optFolderName"
     tar -xf "./wine-crossover-$build.tar.gz" -C "../$optFolderName"
 
     dataYaml="${dataYaml//__wine_build_folder_name__/"$optFolderName"}"
