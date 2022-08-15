@@ -33,4 +33,4 @@ If you want to create an AppImage for a CrossOver or Proton build, you need to a
 ./build.sh proton 7.25 stable 6.0.4
 ```
 
-**WARNING:** CrossOver builds require Docker.
+**WARNING:** CrossOver builds require Docker. Nor CrossOver nor Proton builds are supported by the `build32.sh` script yet.
