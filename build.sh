@@ -24,16 +24,12 @@ buildFolder="build"
 distFolder="dist"
 wrapperFileName="winewrapper"
 
-optFolderName="wine-custom"
 if [ "$version" = "stable" ]; then
     declare -A info=( ["base"]="official"  ["package"]="winehq-stable"   ["readableName"]="Stable" )
-    optFolderName="wine-stable"
 elif [ "$version" = "devel" ]; then
     declare -A info=( ["base"]="official"  ["package"]="winehq-devel"    ["readableName"]="" )
-    optFolderName="wine-devel"
 elif [ "$version" = "staging" ]; then
     declare -A info=( ["base"]="official"  ["package"]="winehq-staging"  ["readableName"]="Staging" )
-    optFolderName="wine-staging"
 elif [ "$version" = "crossover" ]; then
     declare -A info=( ["base"]="custom"    ["package"]="winehq-${3:-stable}"     ["readableName"]="CX" )
     winebuild="${4:-6.0.4}"
@@ -45,6 +41,7 @@ elif [ "$version" = "proton" ]; then
 else
     declare -A info=( ["base"]="custom"    ["package"]="winehq-${3:-stable}"     ["readableName"]="Custom" )
     winebuild="${4:-6.0.4}"
+    optFolderName="wine-custom"
 fi
 
 bitsLabel=""
@@ -111,7 +108,7 @@ if [ "$version" = "proton" ]; then
     cd ..
 fi
 
-if [ ! -d "$DIR/$optFolderName" ]; then
+if [[ -n $optFolderName && ! -d "$DIR/$optFolderName" ]] ; then
     echo "$DIR/$optFolderName is required to run this script"
     exit 1
 fi
