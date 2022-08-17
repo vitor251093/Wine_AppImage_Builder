@@ -1,5 +1,9 @@
 #!/bin/bash
 
+wineAppImageVersion="1"
+distro="debian"
+distro_version="buster"
+
 DIR="$(dirname "${BASH_SOURCE[0]}")"
 DIR="$(realpath "${DIR}")"
 cd "$DIR"
@@ -15,10 +19,6 @@ winebuild="${build}"
 if [[ -z $REPO_ARCH || $REPO_ARCH != "i386" ]] ; then
     REPO_ARCH="amd64"
 fi
-
-distro="debian"
-distro_version="buster"
-export ARCH="x86_64"
 
 buildFolder="build"
 distFolder="dist"
@@ -51,7 +51,7 @@ fi
 
 baseFilePath="base_wine_${info["base"]}.yml"
 wineVersion="${info["package"]}:${REPO_ARCH}=${winebuild}~${distro_version}"
-appimageVersion="AI1Wine${info["readableName"]}${bitsLabel}${build}"
+appimageVersion="AI${wineAppImageVersion}Wine${info["readableName"]}${bitsLabel}${build}"
 
 requiredPkg2appimageFileName="pkg2appimage.AppDir/AppRun"
 fullPkg2appimagePath="$DIR/$requiredPkg2appimageFileName"
@@ -138,6 +138,8 @@ fi
 # Writting recipe file
 filePath="wine-${version}-${build}~${distro_version}.yml"
 echo "$dataYaml" > "$fullBuildFolderPath/$filePath"
+
+export ARCH="x86_64"
 
 tries=3
 while [ $tries -ge 0 ]
