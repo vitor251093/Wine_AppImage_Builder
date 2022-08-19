@@ -12,8 +12,7 @@ ingredients:
     - coreutils
     - mesa-utils
     - unionfs-fuse
-    # wine recommends
-    - libfreetype6:i386
+    - libc6-i386
     # winetricks
     - curl
     - unzip
