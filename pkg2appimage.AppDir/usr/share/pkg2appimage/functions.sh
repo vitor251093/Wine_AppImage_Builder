@@ -422,13 +422,14 @@ function apt-get.do-download(){
 
   already_downloaded_package+=(${package_name})
   
-  local package=$(cat cache.txt | grep -A 4 ^"Package: ${package_name}"$)
+  local package=$(cat cache.txt | grep -A 4 ^"Package: ${package_name}"$ || :)
   if [ -n "$package_version" ] ; then
-    package=$(echo "$package" | grep -B 1 -A 3 ^"Version: ${package_version}")
+    package=$(echo "$package" | grep -B 1 -A 3 ^"Version: ${package_version}" || :)
   fi
   package=$(echo "$package" | tail -5)
   if [ -z "$package" ] ; then
     echo "Couldn't find package ${1}"
+    return
   fi
 
   local dependencies=$(echo "$package" | grep ^"Depends: " \
@@ -475,10 +476,10 @@ function apt-get.do-download(){
     if [ "$depend_name" = "$depend_version" ]; then
       apt-get.do-download "${depend_name}"
     else
-      depend_version=`echo "$depend_version" | sed 's/[\(\)]//g'`
-      if [[ $depend_version == "= "* ]] ;
+      depend_version=`echo "$depend_version" | sed 's/[\(\)]//g' | sed 's/= /=/g' | sed 's/ .*//g'`
+      if [[ $depend_version == "="* ]] ;
       then
-        depend_version=`echo "$depend_version" | sed 's/^= //g'`
+        depend_version=`echo "$depend_version" | sed 's/^=//g'`
         apt-get.do-download "${depend_name}=${depend_version}"
       else
         # >=
